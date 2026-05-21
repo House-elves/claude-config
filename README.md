@@ -1,61 +1,57 @@
 # claude-config
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+A House Elves dashboard for viewing and managing Claude Code configuration across all levels.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Features
 
-## Running the application in dev mode
+- **Permissions viewer** — See all allowed commands across user, user-local, project, and project-local levels with source-level badges
+- **Stale permission cleanup** — Detects permissions that look stale (PIDs, /tmp/ paths, hardcoded tokens, date-specific files, one-off commands) and offers bulk cleanup
+- **Move between levels** — Easily move permissions and config between user/project/local levels
+- **Settings editor** — View and edit settings.json at all 4 levels
+- **CLAUDE.md editor** — Side-by-side editing of user and project CLAUDE.md files
+- **MCP config editor** — View and edit .mcp.json at user and project levels
+- **Keybindings editor** — Edit ~/.claude/keybindings.json
+- **Commands manager** — View, edit, create, and delete slash commands at user and project levels
+- **Project discovery** — Auto-discovers projects with Claude config under configurable paths
+- **Live updates** — WebSocket-based file watching pushes changes when config files are modified externally
+- **Dark/light theme** — Matching the github-worker-ui design system
 
-You can run your application in dev mode that enables live coding using:
+## Running
 
-```shell script
+```shell
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+Dashboard available at http://localhost:7479
 
-## Packaging and running the application
+## Configuration
 
-The application can be packaged using:
+App config at `~/.config/claude-config/config`:
 
-```shell script
-./mvnw package
+```
+PROJECT_PATHS=~/Projects
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+Multiple paths separated by `:` (e.g. `~/Projects:~/Work`).
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+## API Endpoints
 
-If you want to build an _über-jar_, execute the following command:
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/projects` | List discovered projects |
+| `GET /api/permissions/merged?project=...` | All permissions with source-level annotation |
+| `GET /api/permissions/stale?project=...` | Stale permissions grouped by reason |
+| `POST /api/permissions/move` | Move permission between levels |
+| `POST /api/permissions/bulk-remove` | Bulk delete stale permissions |
+| `GET/PUT /api/settings/{level}` | Read/write settings JSON |
+| `GET/PUT /api/claude-md/{level}` | Read/write CLAUDE.md |
+| `GET/PUT /api/mcp/{level}` | Read/write .mcp.json |
+| `GET/PUT /api/keybindings` | Read/write keybindings.json |
+| `GET/PUT/DELETE /api/commands/{level}/{name}` | Manage slash commands |
+| `WS /api/live` | WebSocket for live config change notifications |
 
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
+## Tech Stack
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/claude-config-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Related Guides
-
-- Scheduler ([guide](https://quarkus.io/guides/scheduler)): Schedule recurring tasks and periodic jobs using cron expressions or fixed intervals
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
-- ArC ([guide](https://quarkus.io/guides/cdi-reference)): Build-time oriented CDI Lite implementation for Jakarta Contexts and Dependency Injection
-- WebSockets Next ([guide](https://quarkus.io/guides/websockets-next-reference)): Implementation of the WebSocket API with enhanced efficiency and usability
+- [Quarkus REST Jackson](https://quarkus.io/guides/rest#json-serialisation)
+- [Quarkus WebSockets Next](https://quarkus.io/guides/websockets-next-reference)
+- [Quarkus Scheduler](https://quarkus.io/guides/scheduler)

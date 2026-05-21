@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>House Elves — Claude Config</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Outfit', system-ui, sans-serif;
+  --radius: 8px;
+  --radius-sm: 5px;
+  --radius-lg: 12px;
+  --transition: 0.2s ease;
+}
+
+[data-theme="dark"] {
+  --bg-0: #0e1117;
+  --bg-1: #161b22;
+  --bg-2: #1c2129;
+  --bg-3: #242b35;
+  --bg-4: #2d3541;
+  --bg-surface: #161b22;
+  --border: #2a313c;
+  --border-bright: #3d4654;
+  --text-0: #ecf0f6;
+  --text-1: #9ca8b8;
+  --text-2: #5d6a7e;
+  --accent: #4c8dff;
+  --accent-hover: #6ba1ff;
+  --accent-subtle: rgba(76,141,255,0.1);
+  --green: #3fb950;
+  --green-subtle: rgba(63,185,80,0.12);
+  --amber: #d29922;
+  --amber-subtle: rgba(210,153,34,0.12);
+  --red: #f85149;
+  --red-subtle: rgba(248,81,73,0.1);
+  --cyan: #39d2c0;
+  --cyan-subtle: rgba(57,210,192,0.1);
+  --purple: #a371f7;
+  --purple-subtle: rgba(163,113,247,0.1);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+  --toggle-bg: var(--bg-3);
+  --toggle-dot: var(--text-1);
+}
+
+[data-theme="light"] {
+  --bg-0: #f6f8fa;
+  --bg-1: #ffffff;
+  --bg-2: #f0f3f6;
+  --bg-3: #e4e8ee;
+  --bg-4: #d8dde5;
+  --bg-surface: #ffffff;
+  --border: #d1d9e0;
+  --border-bright: #b8c1cc;
+  --text-0: #1b2028;
+  --text-1: #57606a;
+  --text-2: #8b949e;
+  --accent: #0969da;
+  --accent-hover: #0550ae;
+  --accent-subtle: rgba(9,105,218,0.08);
+  --green: #1a7f37;
+  --green-subtle: rgba(26,127,55,0.08);
+  --amber: #9a6700;
+  --amber-subtle: rgba(154,103,0,0.08);
+  --red: #cf222e;
+  --red-subtle: rgba(207,34,46,0.07);
+  --cyan: #0e8a7e;
+  --cyan-subtle: rgba(14,138,126,0.07);
+  --purple: #8250df;
+  --purple-subtle: rgba(130,80,223,0.07);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --toggle-bg: var(--bg-3);
+  --toggle-dot: var(--text-1);
+}
+
+html { font-size: 14px; }
+body {
+  font-family: var(--sans);
+  background: var(--bg-0);
+  color: var(--text-0);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* === HEADER === */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.header-left { display: flex; align-items: center; gap: 10px; }
+.logo-sock { font-size: 1.15rem; }
+.logo { display: flex; flex-direction: column; line-height: 1.2; }
+.logo-title { font-size: 1rem; font-weight: 600; color: var(--text-0); letter-spacing: -0.01em; }
+.logo-sub { font-family: var(--mono); font-size: 0.62rem; color: var(--text-2); letter-spacing: 0.04em; }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); flex-shrink: 0;
+  position: relative;
+}
+.status-dot::after {
+  content: ''; position: absolute; inset: -3px; border-radius: 50%;
+  border: 1.5px solid var(--green); opacity: 0.35;
+  animation: ping 2.5s ease-out infinite;
+}
+@keyframes ping { 0% { transform: scale(1); opacity: 0.35; } 100% { transform: scale(2); opacity: 0; } }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+/* === THEME TOGGLE === */
+.theme-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+.theme-toggle-label { font-size: 0.82rem; transition: opacity var(--transition); }
+.theme-toggle-label.inactive { opacity: 0.3; }
+.theme-toggle-track {
+  width: 36px; height: 20px; border-radius: 10px;
+  background: var(--toggle-bg); border: 1px solid var(--border);
+  position: relative; transition: background var(--transition), border-color var(--transition);
+}
+.theme-toggle-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--toggle-dot); position: absolute; top: 2px; left: 2px;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background var(--transition);
+}
+[data-theme="light"] .theme-toggle-thumb { transform: translateX(16px); }
+
+/* === LAYOUT === */
+.app-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 46px); }
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-1); border-right: 1px solid var(--border);
+  padding: 12px 0; overflow-y: auto;
+  transition: background var(--transition), border-color var(--transition);
+}
+.sidebar-section { padding: 6px 12px; }
+.sidebar-label {
+  font-family: var(--mono); font-size: 0.62rem; font-weight: 500;
+  color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 4px; padding: 0 8px;
+}
+.sidebar-item {
+  font-size: 0.82rem; padding: 7px 12px; cursor: pointer;
+  border-radius: var(--radius-sm); margin: 1px 4px;
+  color: var(--text-1); transition: all 0.12s;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sidebar-item:hover { background: var(--accent-subtle); color: var(--text-0); }
+.sidebar-item.active { background: var(--accent-subtle); color: var(--accent); font-weight: 500; }
+.sidebar-badge {
+  font-family: var(--mono); font-size: 0.6rem; font-weight: 500;
+  padding: 1px 6px; border-radius: 99px;
+}
+.sidebar-badge.stale { background: var(--red-subtle); color: var(--red); }
+.sidebar-badge.count { background: var(--accent-subtle); color: var(--accent); }
+.sidebar-divider { height: 1px; background: var(--border); margin: 8px 12px; }
+
+/* === PROJECT PICKER === */
+.project-picker {
+  padding: 8px 12px; margin-bottom: 4px;
+}
+.project-picker select {
+  width: 100%; font-family: var(--mono); font-size: 0.75rem;
+  padding: 6px 8px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-2); color: var(--text-0);
+  outline: none; cursor: pointer;
+  transition: border-color 0.15s, background var(--transition), color var(--transition);
+}
+.project-picker select:focus { border-color: var(--accent); }
+
+/* === MAIN CONTENT === */
+.main-content {
+  padding: 20px 24px;
+  max-width: 1100px;
+  overflow-y: auto;
+}
+.content-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.content-title {
+  font-size: 1.1rem; font-weight: 600; color: var(--text-0);
+  display: flex; align-items: center; gap: 8px;
+}
+.content-title-icon { font-size: 1rem; opacity: 0.7; }
+
+/* === BUTTONS === */
+.btn {
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 500;
+  padding: 5px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-2);
+  color: var(--text-1); cursor: pointer; transition: all 0.12s; white-space: nowrap;
+}
+.btn:hover { background: var(--bg-3); color: var(--text-0); border-color: var(--border-bright); }
+.btn:active { transform: scale(0.97); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.danger { border-color: var(--red); color: var(--red); }
+.btn.danger:hover { background: var(--red-subtle); }
+.btn-sm { padding: 3px 8px; font-size: 0.68rem; }
+
+/* === BADGES === */
+.badge {
+  font-family: var(--mono); font-size: 0.64rem; font-weight: 500;
+  padding: 2px 8px; border-radius: 99px; white-space: nowrap;
+}
+.badge-user { background: var(--cyan-subtle); color: var(--cyan); }
+.badge-user-local { background: var(--amber-subtle); color: var(--amber); }
+.badge-project { background: var(--green-subtle); color: var(--green); }
+.badge-project-local { background: var(--purple-subtle); color: var(--purple); }
+
+/* === PANELS === */
+.panel {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: var(--shadow-sm); margin-bottom: 16px;
+  transition: background var(--transition), border-color var(--transition);
+}
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  transition: border-color var(--transition);
+}
+.panel-title {
+  font-size: 0.82rem; font-weight: 600; color: var(--text-0);
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* === PERMISSION TABLE === */
+.perm-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.perm-table thead th {
+  font-family: var(--mono); font-size: 0.66rem; font-weight: 500;
+  color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border);
+}
+.perm-table tbody tr {
+  border-bottom: 1px solid var(--border); transition: background 0.1s;
+}
+.perm-table tbody tr:last-child { border-bottom: none; }
+.perm-table tbody tr:hover { background: var(--accent-subtle); }
+.perm-table tbody tr.stale-row { background: var(--red-subtle); }
+.perm-table tbody tr.stale-row:hover { background: rgba(248,81,73,0.15); }
+.perm-table td { padding: 7px 12px; vertical-align: middle; }
+.perm-pattern {
+  font-family: var(--mono); font-size: 0.74rem; word-break: break-all;
+  max-width: 500px;
+}
+.perm-actions { display: flex; gap: 4px; align-items: center; }
+.perm-stale-reasons {
+  font-family: var(--mono); font-size: 0.62rem; color: var(--red); opacity: 0.8;
+}
+
+/* === MOVE DROPDOWN === */
+.move-select {
+  font-family: var(--mono); font-size: 0.66rem;
+  padding: 2px 4px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-2); color: var(--text-1);
+  cursor: pointer; outline: none;
+}
+
+/* === SEARCH === */
+.search-bar {
+  width: 100%; font-family: var(--mono); font-size: 0.78rem;
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-0); color: var(--text-0);
+  outline: none; margin-bottom: 12px;
+  transition: border-color 0.15s, background var(--transition), color var(--transition);
+}
+.search-bar:focus { border-color: var(--accent); }
+.search-bar::placeholder { color: var(--text-2); }
+
+/* === EDITOR === */
+.editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 960px) { .editor-grid { grid-template-columns: 1fr; } }
+.editor-panel {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+  transition: background var(--transition), border-color var(--transition);
+}
+.editor-panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; border-bottom: 1px solid var(--border);
+  font-size: 0.78rem; font-weight: 600; color: var(--text-0);
+}
+.editor-panel-head .badge { margin-left: 8px; }
+.editor-textarea {
+  width: 100%; min-height: 300px; max-height: 600px; resize: vertical;
+  font-family: var(--mono); font-size: 0.76rem; line-height: 1.6;
+  padding: 12px 14px; border: none; background: var(--bg-0); color: var(--text-0);
+  outline: none;
+  transition: background var(--transition), color var(--transition);
+}
+.editor-textarea:focus { box-shadow: inset 0 0 0 1px var(--accent); }
+.editor-full { grid-column: 1 / -1; }
+
+/* === CLEANUP === */
+.cleanup-group {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden;
+  transition: background var(--transition), border-color var(--transition);
+}
+.cleanup-group-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.1s;
+}
+.cleanup-group-head:hover { background: var(--accent-subtle); }
+.cleanup-group-title {
+  font-size: 0.82rem; font-weight: 500; display: flex; align-items: center; gap: 8px;
+}
+.cleanup-group-count {
+  font-family: var(--mono); font-size: 0.66rem; font-weight: 500;
+  padding: 2px 8px; border-radius: 99px;
+  background: var(--red-subtle); color: var(--red);
+}
+.cleanup-items { padding: 0; }
+.cleanup-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text-1);
+  transition: background 0.1s;
+}
+.cleanup-item:last-child { border-bottom: none; }
+.cleanup-item:hover { background: var(--accent-subtle); }
+.cleanup-item input[type="checkbox"] { accent-color: var(--accent); }
+.cleanup-item-pattern { word-break: break-all; flex: 1; }
+.cleanup-item-level { flex-shrink: 0; }
+
+/* === COMMAND LIST === */
+.command-item {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); margin-bottom: 8px; overflow: hidden;
+  transition: background var(--transition), border-color var(--transition);
+}
+.command-item-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; cursor: pointer; transition: background 0.1s;
+}
+.command-item-head:hover { background: var(--accent-subtle); }
+.command-name { font-family: var(--mono); font-size: 0.78rem; font-weight: 500; }
+.command-body { display: none; }
+.command-body.open { display: block; }
+.command-textarea {
+  width: 100%; min-height: 150px; resize: vertical;
+  font-family: var(--mono); font-size: 0.74rem; line-height: 1.5;
+  padding: 10px 14px; border: none; border-top: 1px solid var(--border);
+  background: var(--bg-0); color: var(--text-0); outline: none;
+}
+
+/* === ADD FORM === */
+.add-form {
+  display: flex; gap: 8px; align-items: center;
+  padding: 10px 14px; border-top: 1px solid var(--border);
+}
+.add-input {
+  font-family: var(--mono); font-size: 0.74rem;
+  padding: 5px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-0); color: var(--text-0);
+  outline: none; flex: 1;
+  transition: border-color 0.15s, background var(--transition), color var(--transition);
+}
+.add-input:focus { border-color: var(--accent); }
+
+/* === TOAST === */
+.toast {
+  position: fixed; bottom: 20px; right: 20px;
+  font-family: var(--mono); font-size: 0.75rem;
+  padding: 8px 16px; border-radius: var(--radius);
+  background: var(--bg-3); border: 1px solid var(--border-bright);
+  color: var(--text-0); transform: translateY(70px); opacity: 0;
+  transition: all 0.25s ease-out; z-index: 200; box-shadow: var(--shadow-md);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: var(--green); }
+.toast.error { border-color: var(--red); }
+
+/* === CONFIRM DIALOG === */
+.dialog-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 300;
+  align-items: center; justify-content: center;
+}
+.dialog-overlay.show { display: flex; }
+.dialog {
+  background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px 24px;
+  max-width: 460px; width: 90%; box-shadow: var(--shadow-md);
+}
+.dialog h3 { font-size: 0.95rem; margin-bottom: 10px; }
+.dialog p { font-size: 0.82rem; color: var(--text-1); margin-bottom: 16px; }
+.dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* === EMPTY STATE === */
+.empty {
+  text-align: center; padding: 40px 20px;
+  color: var(--text-2); font-size: 0.85rem;
+}
+.empty-icon { font-size: 1.5rem; margin-bottom: 8px; opacity: 0.5; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <span class="logo-sock">🧦</span>
+    <div class="logo">
+      <span class="logo-title">House Elves</span>
+      <span class="logo-sub">claude config</span>
+    </div>
+    <div class="status-dot"></div>
+  </div>
+  <div class="header-right">
+    <div class="theme-toggle" onclick="toggleTheme()">
+      <span class="theme-toggle-label" id="moonIcon">🌙</span>
+      <div class="theme-toggle-track"><div class="theme-toggle-thumb"></div></div>
+      <span class="theme-toggle-label" id="sunIcon">☀️</span>
+    </div>
+  </div>
+</header>
+
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="project-picker">
+      <select id="projectSelect" onchange="selectProject(this.value)">
+        <option value="">User only (no project)</option>
+      </select>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Config</div>
+      <div class="sidebar-item active" onclick="switchTab('permissions')" data-tab="permissions">
+        Permissions
+        <span class="sidebar-badge count" id="permCount">0</span>
+      </div>
+      <div class="sidebar-item" onclick="switchTab('cleanup')" data-tab="cleanup">
+        Cleanup
+        <span class="sidebar-badge stale" id="staleCount">0</span>
+      </div>
+      <div class="sidebar-item" onclick="switchTab('settings')" data-tab="settings">Settings</div>
+      <div class="sidebar-item" onclick="switchTab('claudemd')" data-tab="claudemd">CLAUDE.md</div>
+      <div class="sidebar-item" onclick="switchTab('mcp')" data-tab="mcp">MCP Servers</div>
+      <div class="sidebar-item" onclick="switchTab('keybindings')" data-tab="keybindings">Keybindings</div>
+      <div class="sidebar-item" onclick="switchTab('commands')" data-tab="commands">Commands</div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Projects</div>
+      <div id="projectList"></div>
+    </div>
+  </nav>
+
+  <main class="main-content" id="mainContent">
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="dialog-overlay" id="dialogOverlay">
+  <div class="dialog">
+    <h3 id="dialogTitle"></h3>
+    <p id="dialogMessage"></p>
+    <div class="dialog-actions">
+      <button class="btn" onclick="closeDialog()">Cancel</button>
+      <button class="btn danger" id="dialogConfirm" onclick="confirmDialog()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// === THEME ===
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('claude-config-theme', theme);
+  document.getElementById('moonIcon').className = 'theme-toggle-label' + (theme === 'dark' ? '' : ' inactive');
+  document.getElementById('sunIcon').className = 'theme-toggle-label' + (theme === 'light' ? '' : ' inactive');
+}
+function toggleTheme() {
+  setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+}
+setTheme(localStorage.getItem('claude-config-theme') || 'dark');
+
+// === STATE ===
+let currentProject = '';
+let currentTab = 'permissions';
+let projects = [];
+let permissionsData = [];
+let staleData = { stale: [], grouped: {} };
+let dialogCallback = null;
+
+// === HELPERS ===
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (type || '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = 'toast', 3000);
+}
+function showDialog(title, message, onConfirm) {
+  document.getElementById('dialogTitle').textContent = title;
+  document.getElementById('dialogMessage').textContent = message;
+  document.getElementById('dialogOverlay').classList.add('show');
+  dialogCallback = onConfirm;
+}
+function closeDialog() {
+  document.getElementById('dialogOverlay').classList.remove('show');
+  dialogCallback = null;
+}
+function confirmDialog() {
+  if (dialogCallback) dialogCallback();
+  closeDialog();
+}
+
+function levelBadge(level) {
+  const labels = { 'user': 'user', 'user-local': 'user local', 'project': 'project', 'project-local': 'project local' };
+  return '<span class="badge badge-' + level + '">' + (labels[level] || level) + '</span>';
+}
+
+function moveLevels(currentLevel) {
+  const all = ['user', 'user-local', 'project', 'project-local'];
+  return all.filter(l => l !== currentLevel && (currentProject || !l.startsWith('project')));
+}
+
+// === PROJECT ===
+function selectProject(path) {
+  currentProject = path;
+  loadTab();
+}
+
+async function loadProjects() {
+  const res = await fetch('/api/projects');
+  projects = await res.json();
+  const sel = document.getElementById('projectSelect');
+  sel.innerHTML = '<option value="">User only (no project)</option>';
+  for (const p of projects) {
+    sel.innerHTML += '<option value="' + esc(p.path) + '">' + esc(p.name) + '</option>';
+  }
+  renderProjectList();
+}
+
+function renderProjectList() {
+  const el = document.getElementById('projectList');
+  if (projects.length === 0) {
+    el.innerHTML = '<div style="padding:8px 12px;font-size:0.75rem;color:var(--text-2)">No projects found</div>';
+    return;
+  }
+  el.innerHTML = projects.map(p =>
+    '<div class="sidebar-item' + (currentProject === p.path ? ' active' : '') + '" onclick="document.getElementById(\'projectSelect\').value=\'' + esc(p.path) + '\';selectProject(\'' + esc(p.path) + '\')">' +
+    esc(p.name) +
+    (p.permissionCount > 0 ? '<span class="sidebar-badge count">' + p.permissionCount + '</span>' : '') +
+    '</div>'
+  ).join('');
+}
+
+// === TAB SWITCHING ===
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.sidebar-item[data-tab]').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  loadTab();
+}
+
+async function loadTab() {
+  const main = document.getElementById('mainContent');
+  switch (currentTab) {
+    case 'permissions': await renderPermissions(); break;
+    case 'cleanup': await renderCleanup(); break;
+    case 'settings': await renderSettings(); break;
+    case 'claudemd': await renderClaudeMd(); break;
+    case 'mcp': await renderMcp(); break;
+    case 'keybindings': await renderKeybindings(); break;
+    case 'commands': await renderCommands(); break;
+  }
+}
+
+// === PERMISSIONS ===
+let permFilter = '';
+async function renderPermissions() {
+  const url = '/api/permissions/merged' + (currentProject ? '?project=' + encodeURIComponent(currentProject) : '');
+  const res = await fetch(url);
+  permissionsData = await res.json();
+  document.getElementById('permCount').textContent = permissionsData.length;
+
+  // also load stale count
+  const staleRes = await fetch('/api/permissions/stale' + (currentProject ? '?project=' + encodeURIComponent(currentProject) : ''));
+  staleData = await staleRes.json();
+  document.getElementById('staleCount').textContent = staleData.stale.length;
+
+  renderPermissionsTable();
+}
+
+function renderPermissionsTable() {
+  const main = document.getElementById('mainContent');
+  const filtered = permFilter
+    ? permissionsData.filter(p => p.pattern.toLowerCase().includes(permFilter.toLowerCase()))
+    : permissionsData;
+
+  let html = '<div class="content-header">' +
+    '<div class="content-title"><span class="content-title-icon">🔐</span> Permissions (' + permissionsData.length + ')</div>' +
+    '</div>' +
+    '<input class="search-bar" placeholder="Filter permissions..." value="' + esc(permFilter) + '" oninput="permFilter=this.value;renderPermissionsTable()">';
+
+  if (filtered.length === 0) {
+    html += '<div class="empty"><div class="empty-icon">🔐</div>No permissions found</div>';
+    main.innerHTML = html;
+    return;
+  }
+
+  html += '<div class="panel"><table class="perm-table"><thead><tr>' +
+    '<th>Pattern</th><th>Level</th><th>Stale</th><th style="width:140px">Actions</th>' +
+    '</tr></thead><tbody>';
+
+  for (const p of filtered) {
+    const staleReasons = p.reasons.map(r => r.code).join(', ');
+    html += '<tr class="' + (p.stale ? 'stale-row' : '') + '">' +
+      '<td class="perm-pattern">' + esc(p.pattern) + '</td>' +
+      '<td>' + levelBadge(p.level) + '</td>' +
+      '<td>' + (p.stale ? '<span class="perm-stale-reasons">' + esc(staleReasons) + '</span>' : '') + '</td>' +
+      '<td><div class="perm-actions">' +
+        '<select class="move-select" onchange="movePermission(\'' + esc(p.pattern.replace(/'/g, "\\'")) + '\',\'' + p.level + '\',\'' + (p.projectPath || '') + '\',this.value);this.selectedIndex=0">' +
+          '<option value="">move...</option>' +
+          moveLevels(p.level).map(l => '<option value="' + l + '">' + l + '</option>').join('') +
+        '</select>' +
+        '<button class="btn btn-sm danger" onclick="removePerm(\'' + esc(p.pattern.replace(/'/g, "\\'")) + '\',\'' + p.level + '\',\'' + (p.projectPath || '') + '\')">x</button>' +
+      '</div></td></tr>';
+  }
+
+  html += '</tbody></table>';
+
+  // Add permission form
+  html += '<div class="add-form">' +
+    '<select class="move-select" id="addPermLevel">' +
+      '<option value="user">user</option>' +
+      '<option value="user-local">user-local</option>' +
+      (currentProject ? '<option value="project">project</option><option value="project-local">project-local</option>' : '') +
+    '</select>' +
+    '<input class="add-input" id="addPermPattern" placeholder="Bash(command *) or mcp__server__*" onkeydown="if(event.key===\'Enter\')addPerm()">' +
+    '<button class="btn primary btn-sm" onclick="addPerm()">Add</button>' +
+    '</div></div>';
+
+  main.innerHTML = html;
+}
+
+async function movePermission(pattern, fromLevel, fromProject, toLevel) {
+  if (!toLevel) return;
+  const body = { pattern, fromLevel, fromProject: fromProject || null, toLevel, toProject: currentProject || null };
+  const res = await fetch('/api/permissions/move', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  if (res.ok) {
+    toast('Moved to ' + toLevel, 'success');
+    await renderPermissions();
+  } else {
+    const d = await res.json();
+    toast('Move failed: ' + (d.error || ''), 'error');
+  }
+}
+
+async function removePerm(pattern, level, projectPath) {
+  const body = { pattern, level, projectPath: projectPath || null };
+  const res = await fetch('/api/permissions/remove', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  if (res.ok) {
+    toast('Removed', 'success');
+    await renderPermissions();
+  } else {
+    toast('Remove failed', 'error');
+  }
+}
+
+async function addPerm() {
+  const pattern = document.getElementById('addPermPattern').value.trim();
+  const level = document.getElementById('addPermLevel').value;
+  if (!pattern) return;
+  const body = { pattern, level, projectPath: currentProject || null };
+  const res = await fetch('/api/permissions/add', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  if (res.ok) {
+    document.getElementById('addPermPattern').value = '';
+    toast('Permission added', 'success');
+    await renderPermissions();
+  } else {
+    toast('Add failed', 'error');
+  }
+}
+
+// === CLEANUP ===
+let cleanupSelections = {};
+
+async function renderCleanup() {
+  const staleRes = await fetch('/api/permissions/stale' + (currentProject ? '?project=' + encodeURIComponent(currentProject) : ''));
+  staleData = await staleRes.json();
+  document.getElementById('staleCount').textContent = staleData.stale.length;
+  cleanupSelections = {};
+
+  const main = document.getElementById('mainContent');
+
+  if (staleData.stale.length === 0) {
+    main.innerHTML = '<div class="content-header"><div class="content-title"><span class="content-title-icon">🧹</span> Cleanup</div></div>' +
+      '<div class="empty"><div class="empty-icon">✨</div>No stale permissions found — all clean!</div>';
+    return;
+  }
+
+  const reasonLabels = {
+    pid: 'Process IDs (kill)', tmp: 'Temporary paths (/tmp/)',
+    token: 'Hardcoded tokens', date: 'Date-specific files',
+    rpm: 'One-off package queries', syspath: 'System path reads',
+    pkill: 'Process kills (pkill)', specific: 'Overly specific paths'
+  };
+
+  let html = '<div class="content-header">' +
+    '<div class="content-title"><span class="content-title-icon">🧹</span> Cleanup (' + staleData.stale.length + ' stale)</div>' +
+    '<button class="btn danger" onclick="cleanSelected()">Clean selected</button>' +
+    '</div>';
+
+  for (const [reason, items] of Object.entries(staleData.grouped)) {
+    html += '<div class="cleanup-group">' +
+      '<div class="cleanup-group-head" onclick="toggleCleanupGroup(this)">' +
+        '<div class="cleanup-group-title">' +
+          '<input type="checkbox" onclick="event.stopPropagation();toggleGroupCheckbox(\'' + reason + '\',this.checked)">' +
+          ' ' + (reasonLabels[reason] || reason) +
+        '</div>' +
+        '<span class="cleanup-group-count">' + items.length + '</span>' +
+      '</div>' +
+      '<div class="cleanup-items">';
+
+    for (const item of items) {
+      const key = item.level + '::' + item.pattern;
+      html += '<div class="cleanup-item">' +
+        '<input type="checkbox" data-reason="' + reason + '" data-key="' + esc(key) + '" onchange="toggleCleanupItem(\'' + esc(key.replace(/'/g, "\\'")) + '\',this.checked)">' +
+        '<span class="cleanup-item-pattern">' + esc(item.pattern) + '</span>' +
+        '<span class="cleanup-item-level">' + levelBadge(item.level) + '</span>' +
+        '</div>';
+    }
+
+    html += '</div></div>';
+  }
+
+  main.innerHTML = html;
+}
+
+function toggleCleanupGroup(head) {
+  const items = head.nextElementSibling;
+  items.style.display = items.style.display === 'none' ? '' : 'none';
+}
+
+function toggleGroupCheckbox(reason, checked) {
+  document.querySelectorAll('input[data-reason="' + reason + '"]').forEach(cb => {
+    cb.checked = checked;
+    toggleCleanupItem(cb.dataset.key, checked);
+  });
+}
+
+function toggleCleanupItem(key, checked) {
+  if (checked) cleanupSelections[key] = true;
+  else delete cleanupSelections[key];
+}
+
+async function cleanSelected() {
+  const keys = Object.keys(cleanupSelections);
+  if (keys.length === 0) { toast('Nothing selected', 'error'); return; }
+
+  showDialog('Clean ' + keys.length + ' permissions?',
+    'This will permanently remove ' + keys.length + ' permission(s) from your config files.',
+    async () => {
+      // Group by level for bulk remove
+      const byLevel = {};
+      for (const key of keys) {
+        const [level, ...rest] = key.split('::');
+        const pattern = rest.join('::');
+        if (!byLevel[level]) byLevel[level] = [];
+        byLevel[level].push(pattern);
+      }
+
+      let totalRemoved = 0;
+      for (const [level, patterns] of Object.entries(byLevel)) {
+        const res = await fetch('/api/permissions/bulk-remove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ level, projectPath: currentProject || null, patterns })
+        });
+        if (res.ok) {
+          const d = await res.json();
+          totalRemoved += d.count;
+        }
+      }
+
+      toast('Cleaned ' + totalRemoved + ' permissions', 'success');
+      await renderCleanup();
+    }
+  );
+}
+
+// === SETTINGS ===
+async function renderSettings() {
+  const main = document.getElementById('mainContent');
+  let html = '<div class="content-header"><div class="content-title"><span class="content-title-icon">⚙️</span> Settings</div></div>';
+
+  const levels = [
+    { key: 'user', label: 'User', badge: 'user', url: '/api/settings/user' },
+    { key: 'user-local', label: 'User Local', badge: 'user-local', url: '/api/settings/user-local' },
+  ];
+  if (currentProject) {
+    levels.push(
+      { key: 'project', label: 'Project', badge: 'project', url: '/api/settings/project?path=' + encodeURIComponent(currentProject) },
+      { key: 'project-local', label: 'Project Local', badge: 'project-local', url: '/api/settings/project-local?path=' + encodeURIComponent(currentProject) }
+    );
+  }
+
+  html += '<div class="editor-grid">';
+  for (const lvl of levels) {
+    const res = await fetch(lvl.url);
+    const data = await res.json();
+    const json = JSON.stringify(data, null, 2);
+
+    html += '<div class="editor-panel">' +
+      '<div class="editor-panel-head">' + esc(lvl.label) + '<span class="badge badge-' + lvl.badge + '">' + lvl.key + '</span>' +
+      '<button class="btn btn-sm" onclick="saveSettings(\'' + lvl.key + '\')">Save</button></div>' +
+      '<textarea class="editor-textarea" id="settings-' + lvl.key + '">' + esc(json) + '</textarea>' +
+      '</div>';
+  }
+  html += '</div>';
+  main.innerHTML = html;
+}
+
+async function saveSettings(level) {
+  const textarea = document.getElementById('settings-' + level);
+  let content;
+  try {
+    content = JSON.parse(textarea.value);
+  } catch (e) {
+    toast('Invalid JSON: ' + e.message, 'error');
+    return;
+  }
+  const urls = {
+    'user': '/api/settings/user',
+    'user-local': '/api/settings/user-local',
+    'project': '/api/settings/project?path=' + encodeURIComponent(currentProject),
+    'project-local': '/api/settings/project-local?path=' + encodeURIComponent(currentProject),
+  };
+  const res = await fetch(urls[level], {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(content)
+  });
+  toast(res.ok ? 'Settings saved' : 'Save failed', res.ok ? 'success' : 'error');
+}
+
+// === CLAUDE.MD ===
+async function renderClaudeMd() {
+  const main = document.getElementById('mainContent');
+  let html = '<div class="content-header"><div class="content-title"><span class="content-title-icon">📝</span> CLAUDE.md</div></div>';
+
+  const userRes = await fetch('/api/claude-md/user');
+  const userContent = await userRes.text();
+
+  html += '<div class="editor-grid">';
+  html += '<div class="editor-panel' + (!currentProject ? ' editor-full' : '') + '">' +
+    '<div class="editor-panel-head">User <span class="badge badge-user">~/.claude/CLAUDE.md</span>' +
+    '<button class="btn btn-sm" onclick="saveClaudeMd(\'user\')">Save</button></div>' +
+    '<textarea class="editor-textarea" id="claudemd-user">' + esc(userContent) + '</textarea></div>';
+
+  if (currentProject) {
+    const projRes = await fetch('/api/claude-md/project?path=' + encodeURIComponent(currentProject));
+    const projContent = await projRes.text();
+    html += '<div class="editor-panel">' +
+      '<div class="editor-panel-head">Project <span class="badge badge-project">CLAUDE.md</span>' +
+      '<button class="btn btn-sm" onclick="saveClaudeMd(\'project\')">Save</button></div>' +
+      '<textarea class="editor-textarea" id="claudemd-project">' + esc(projContent) + '</textarea></div>';
+  }
+  html += '</div>';
+  main.innerHTML = html;
+}
+
+async function saveClaudeMd(level) {
+  const textarea = document.getElementById('claudemd-' + level);
+  const url = level === 'user' ? '/api/claude-md/user' : '/api/claude-md/project?path=' + encodeURIComponent(currentProject);
+  const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'text/plain' }, body: textarea.value });
+  toast(res.ok ? 'CLAUDE.md saved' : 'Save failed', res.ok ? 'success' : 'error');
+}
+
+// === MCP ===
+async function renderMcp() {
+  const main = document.getElementById('mainContent');
+  let html = '<div class="content-header"><div class="content-title"><span class="content-title-icon">🔌</span> MCP Servers</div></div>';
+
+  const userRes = await fetch('/api/mcp/user');
+  const userData = await userRes.json();
+
+  html += '<div class="editor-grid">';
+  html += '<div class="editor-panel' + (!currentProject ? ' editor-full' : '') + '">' +
+    '<div class="editor-panel-head">User <span class="badge badge-user">~/.claude/.mcp.json</span>' +
+    '<button class="btn btn-sm" onclick="saveMcp(\'user\')">Save</button></div>' +
+    '<textarea class="editor-textarea" id="mcp-user">' + esc(JSON.stringify(userData, null, 2)) + '</textarea></div>';
+
+  if (currentProject) {
+    const projRes = await fetch('/api/mcp/project?path=' + encodeURIComponent(currentProject));
+    const projData = await projRes.json();
+    html += '<div class="editor-panel">' +
+      '<div class="editor-panel-head">Project <span class="badge badge-project">.mcp.json</span>' +
+      '<button class="btn btn-sm" onclick="saveMcp(\'project\')">Save</button></div>' +
+      '<textarea class="editor-textarea" id="mcp-project">' + esc(JSON.stringify(projData, null, 2)) + '</textarea></div>';
+  }
+  html += '</div>';
+  main.innerHTML = html;
+}
+
+async function saveMcp(level) {
+  const textarea = document.getElementById('mcp-' + level);
+  let content;
+  try { content = JSON.parse(textarea.value); } catch (e) { toast('Invalid JSON: ' + e.message, 'error'); return; }
+  const url = level === 'user' ? '/api/mcp/user' : '/api/mcp/project?path=' + encodeURIComponent(currentProject);
+  const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(content) });
+  toast(res.ok ? 'MCP config saved' : 'Save failed', res.ok ? 'success' : 'error');
+}
+
+// === KEYBINDINGS ===
+async function renderKeybindings() {
+  const main = document.getElementById('mainContent');
+  const res = await fetch('/api/keybindings');
+  const data = await res.json();
+  main.innerHTML = '<div class="content-header"><div class="content-title"><span class="content-title-icon">⌨️</span> Keybindings</div></div>' +
+    '<div class="editor-panel editor-full">' +
+    '<div class="editor-panel-head">User <span class="badge badge-user">~/.claude/keybindings.json</span>' +
+    '<button class="btn btn-sm" onclick="saveKeybindings()">Save</button></div>' +
+    '<textarea class="editor-textarea" id="keybindings-editor">' + esc(JSON.stringify(data, null, 2)) + '</textarea></div>';
+}
+
+async function saveKeybindings() {
+  const textarea = document.getElementById('keybindings-editor');
+  let content;
+  try { content = JSON.parse(textarea.value); } catch (e) { toast('Invalid JSON: ' + e.message, 'error'); return; }
+  const res = await fetch('/api/keybindings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(content) });
+  toast(res.ok ? 'Keybindings saved' : 'Save failed', res.ok ? 'success' : 'error');
+}
+
+// === COMMANDS ===
+async function renderCommands() {
+  const main = document.getElementById('mainContent');
+  let html = '<div class="content-header"><div class="content-title"><span class="content-title-icon">💬</span> Commands</div></div>';
+
+  const userRes = await fetch('/api/commands/user');
+  const userCmds = await userRes.json();
+
+  html += '<div class="editor-grid">';
+
+  // User commands
+  html += '<div>';
+  html += '<div style="margin-bottom:8px"><span class="badge badge-user">User commands</span></div>';
+  for (const [name, content] of Object.entries(userCmds)) {
+    html += commandCard(name, content, 'user');
+  }
+  html += '<div class="add-form" style="padding:8px 0;border:none">' +
+    '<input class="add-input" id="newUserCmd" placeholder="command-name" onkeydown="if(event.key===\'Enter\')createCommand(\'user\')">' +
+    '<button class="btn btn-sm primary" onclick="createCommand(\'user\')">New</button></div>';
+  html += '</div>';
+
+  // Project commands
+  if (currentProject) {
+    const projRes = await fetch('/api/commands/project?path=' + encodeURIComponent(currentProject));
+    const projCmds = await projRes.json();
+    html += '<div>';
+    html += '<div style="margin-bottom:8px"><span class="badge badge-project">Project commands</span></div>';
+    for (const [name, content] of Object.entries(projCmds)) {
+      html += commandCard(name, content, 'project');
+    }
+    html += '<div class="add-form" style="padding:8px 0;border:none">' +
+      '<input class="add-input" id="newProjCmd" placeholder="command-name" onkeydown="if(event.key===\'Enter\')createCommand(\'project\')">' +
+      '<button class="btn btn-sm primary" onclick="createCommand(\'project\')">New</button></div>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  main.innerHTML = html;
+}
+
+function commandCard(name, content, level) {
+  const id = 'cmd-' + level + '-' + name;
+  return '<div class="command-item">' +
+    '<div class="command-item-head" onclick="toggleCommand(\'' + id + '\')">' +
+      '<span class="command-name">/' + esc(name) + '</span>' +
+      '<div style="display:flex;gap:4px">' +
+        '<button class="btn btn-sm" onclick="event.stopPropagation();saveCommand(\'' + level + '\',\'' + esc(name) + '\')">Save</button>' +
+        '<button class="btn btn-sm danger" onclick="event.stopPropagation();deleteCommand(\'' + level + '\',\'' + esc(name) + '\')">Del</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="command-body" id="' + id + '">' +
+      '<textarea class="command-textarea" id="' + id + '-text">' + esc(content) + '</textarea>' +
+    '</div></div>';
+}
+
+function toggleCommand(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+async function saveCommand(level, name) {
+  const textarea = document.getElementById('cmd-' + level + '-' + name + '-text');
+  const url = level === 'user'
+    ? '/api/commands/user/' + encodeURIComponent(name)
+    : '/api/commands/project/' + encodeURIComponent(name) + '?path=' + encodeURIComponent(currentProject);
+  const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'text/plain' }, body: textarea.value });
+  toast(res.ok ? 'Command saved' : 'Save failed', res.ok ? 'success' : 'error');
+}
+
+async function deleteCommand(level, name) {
+  showDialog('Delete /' + name + '?', 'This will permanently delete this command.', async () => {
+    const url = level === 'user'
+      ? '/api/commands/user/' + encodeURIComponent(name)
+      : '/api/commands/project/' + encodeURIComponent(name) + '?path=' + encodeURIComponent(currentProject);
+    const res = await fetch(url, { method: 'DELETE' });
+    if (res.ok) { toast('Deleted', 'success'); await renderCommands(); }
+    else toast('Delete failed', 'error');
+  });
+}
+
+async function createCommand(level) {
+  const input = document.getElementById(level === 'user' ? 'newUserCmd' : 'newProjCmd');
+  const name = input.value.trim();
+  if (!name) return;
+  const url = level === 'user'
+    ? '/api/commands/user/' + encodeURIComponent(name)
+    : '/api/commands/project/' + encodeURIComponent(name) + '?path=' + encodeURIComponent(currentProject);
+  const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'text/plain' }, body: '---\ndescription: ""\n---\n\n' });
+  if (res.ok) { toast('Command created', 'success'); await renderCommands(); }
+  else toast('Create failed', 'error');
+}
+
+// === WEBSOCKET ===
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const ws = new WebSocket(proto + '//' + location.host + '/api/live');
+  ws.onmessage = evt => {
+    try {
+      const d = JSON.parse(evt.data);
+      if (d.type === 'config-change') {
+        loadTab();
+        toast('Config updated externally', 'success');
+      }
+    } catch (e) {}
+  };
+  ws.onclose = () => setTimeout(connectWS, 3000);
+  ws.onerror = () => ws.close();
+}
+
+// === INIT ===
+async function init() {
+  await loadProjects();
+  await loadTab();
+  connectWS();
+}
+init();
+</script>
+</body>
+</html>
