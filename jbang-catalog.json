@@ -1,0 +1,9 @@
+{
+  "catalogs": {},
+  "aliases": {
+    "claude-config": {
+      "script-ref": "ClaudeConfig.java",
+      "description": "House Elves dashboard for viewing and managing Claude Code configuration"
+    }
+  }
+}
